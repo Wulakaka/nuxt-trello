@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import draggable from "vuedraggable";
 import {nanoid} from "nanoid";
-import type {Column} from "~~/types";
+import type {Column, Task} from "~~/types";
 
 const columns = ref<Column[]>([
   {
@@ -26,6 +26,8 @@ const columns = ref<Column[]>([
   {title: "QA", id: nanoid(), tasks: []},
   {title: "Complete", id: nanoid(), tasks: []},
 ]);
+
+const alt = useKeyModifier("Alt");
 </script>
 <template>
   <div>
@@ -43,13 +45,21 @@ const columns = ref<Column[]>([
             <DragHandle />
             {{ column.title }}
           </header>
-          <TrelloBoardTask
-            v-for="task in column.tasks"
-            :key="task.id"
-            :task="task"
-          />
+          <draggable
+            v-model="column.tasks"
+            :group="{name: 'tasks', pull: alt ? 'clone' : true, put: true}"
+            :animation="150"
+            handle=".drag-handle"
+            item-key="id"
+          >
+            <template #item="{element: task}: {element: Task}">
+              <div>
+                <TrelloBoardTask :task="task" />
+              </div>
+            </template>
+          </draggable>
           <footer>
-            <button class="text-gray-500">+ Add a Card</button>
+            <NewTask @add="column.tasks.push($event)" />
           </footer>
         </div>
       </template>
